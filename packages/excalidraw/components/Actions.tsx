@@ -162,7 +162,6 @@ export const SelectedShapeActions = ({
         targetElements.some((element) => hasStrokeStyle(element.type))) && (
         <>
           {renderAction("changeStrokeStyle")}
-          {renderAction("changeSloppiness")}
         </>
       )}
 
