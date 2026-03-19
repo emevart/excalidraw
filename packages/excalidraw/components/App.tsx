@@ -99,6 +99,9 @@ import {
   MINIMUM_ARROW_SIZE,
   DOUBLE_TAP_POSITION_THRESHOLD,
   BIND_MODE_TIMEOUT,
+  STRAIGHTEN_HOLD_TIME,
+  STRAIGHTEN_MIN_LENGTH,
+  STRAIGHTEN_ANIMATION_DURATION,
   invariant,
   getFeatureFlag,
   createUserAgentDescriptor,
@@ -360,6 +363,11 @@ import { actions } from "../actions/register";
 import { getShortcutFromShortcutName } from "../actions/shortcuts";
 import { trackEvent } from "../analytics";
 import { AnimationFrameHandler } from "../animation-frame-handler";
+import {
+  computeStraightenedPoints,
+  computeTargetPositions,
+  pathLength,
+} from "../straighten";
 import {
   getDefaultAppState,
   isEraserActive,
@@ -629,6 +637,10 @@ const toolSettings: Record<"pencil" | "highlighter" | "shape", ToolSettings> = {
 
 let activeSettingsKey: "pencil" | "highlighter" | "shape" = "shape";
 let isHighlighterMode = false;
+
+let straightenTimerId: number | null = null;
+let straightenAnimationId: number | null = null;
+let isStraightening = false;
 
 let isHoldingSpace: boolean = false;
 let isPanning: boolean = false;
@@ -8956,6 +8968,56 @@ class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  private animateStraighten(element: ExcalidrawFreeDrawElement) {
+    const targetPoints = computeStraightenedPoints(element.points);
+    if (!targetPoints) {
+      return;
+    }
+
+    isStraightening = true;
+    const originalPoints = [...element.points];
+    const targets = computeTargetPositions(originalPoints, targetPoints);
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      if (this.state.newElement !== element) {
+        isStraightening = false;
+        straightenAnimationId = null;
+        return;
+      }
+
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / STRAIGHTEN_ANIMATION_DURATION, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+
+      const interpolated = originalPoints.map((orig, i) =>
+        pointFrom<LocalPoint>(
+          orig[0] + (targets[i][0] - orig[0]) * eased,
+          orig[1] + (targets[i][1] - orig[1]) * eased,
+        ),
+      );
+
+      this.scene.mutateElement(element, { points: interpolated });
+      this.setState({ newElement: element });
+
+      if (t < 1) {
+        straightenAnimationId = requestAnimationFrame(animate);
+      } else {
+        const targetPressures = targetPoints.map(() =>
+          element.simulatePressure ? 0.5 : 1,
+        );
+        this.scene.mutateElement(element, {
+          points: targetPoints,
+          pressures: targetPressures,
+        });
+        this.setState({ newElement: element });
+        straightenAnimationId = null;
+      }
+    };
+
+    straightenAnimationId = requestAnimationFrame(animate);
+  }
+
   public insertIframeElement = ({
     sceneX,
     sceneY,
@@ -10646,6 +10708,10 @@ class App extends React.Component<AppProps, AppState> {
         }
 
         if (newElement.type === "freedraw") {
+          if (isStraightening) {
+            return;
+          }
+
           const points = newElement.points;
           const dx = pointerCoords.x - newElement.x;
           const dy = pointerCoords.y - newElement.y;
@@ -10674,6 +10740,29 @@ class App extends React.Component<AppProps, AppState> {
             this.setState({
               newElement,
             });
+
+            // Straighten detection: reset timer on each significant move
+            if (straightenTimerId !== null) {
+              clearTimeout(straightenTimerId);
+              straightenTimerId = null;
+            }
+            if (straightenAnimationId !== null) {
+              cancelAnimationFrame(straightenAnimationId);
+              straightenAnimationId = null;
+              isStraightening = false;
+            }
+
+            straightenTimerId = window.setTimeout(() => {
+              straightenTimerId = null;
+              const el = this.state.newElement;
+              if (
+                el &&
+                el.type === "freedraw" &&
+                pathLength(el.points) >= STRAIGHTEN_MIN_LENGTH
+              ) {
+                this.animateStraighten(el as ExcalidrawFreeDrawElement);
+              }
+            }, STRAIGHTEN_HOLD_TIME);
           }
         } else if (
           isLinearElement(newElement) &&
@@ -11117,6 +11206,16 @@ class App extends React.Component<AppProps, AppState> {
       );
 
       if (newElement?.type === "freedraw") {
+        if (straightenTimerId !== null) {
+          clearTimeout(straightenTimerId);
+          straightenTimerId = null;
+        }
+        if (straightenAnimationId !== null) {
+          cancelAnimationFrame(straightenAnimationId);
+          straightenAnimationId = null;
+          isStraightening = false;
+        }
+
         const pointerCoords = viewportCoordsToSceneCoords(
           childEvent,
           this.state,
