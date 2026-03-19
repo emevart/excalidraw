@@ -187,7 +187,8 @@
     "preferences": "Настройки",
     "preferences_toolLock": "Фиксация инструмента",
     "arrowBinding": "Привязка стрелок",
-    "midpointSnapping": "Привязка к середине"
+    "midpointSnapping": "Привязка к середине",
+    "minimap": "Миникарта"
   },
   "elementLink": {
     "title": "Ссылка на объект",

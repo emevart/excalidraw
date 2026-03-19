@@ -2,6 +2,7 @@ import clsx from "clsx";
 
 import { useTunnels } from "../../context/tunnels";
 import { ExitZenModeButton, ZoomActions } from "../Actions";
+import { MinimapToggle } from "../Minimap";
 import { Section } from "../Section";
 import Stack from "../Stack";
 
@@ -39,6 +40,7 @@ const Footer = ({
               zoom={appState.zoom}
             />
           </Section>
+          <MinimapToggle />
         </Stack.Col>
       </div>
       <FooterCenterTunnel.Out />
