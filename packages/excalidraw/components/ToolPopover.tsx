@@ -35,6 +35,8 @@ type ToolPopoverProps = {
   fillable?: boolean;
   /** When provided, replaces the default setActiveTool+onToolChange in popup */
   onSelect?: (type: string) => void;
+  /** Override popup distance from trigger (default: 26) */
+  sideOffset?: number;
 };
 
 export const ToolPopover = ({
@@ -50,11 +52,12 @@ export const ToolPopover = ({
   displayedOption,
   fillable = false,
   onSelect,
+  sideOffset: sideOffsetProp,
 }: ToolPopoverProps) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const currentType = activeTool.type;
   const isActive = displayedOption.type === currentType;
-  const SIDE_OFFSET = 32 / 2 + 10;
+  const SIDE_OFFSET = sideOffsetProp ?? 32 / 2 + 10;
   const { container } = useExcalidrawContainer();
 
   // if currentType is not in options, close popup
