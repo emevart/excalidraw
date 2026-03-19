@@ -287,8 +287,14 @@ export const MobileToolBar = ({
 
   const WIDTH = 36;
   const GAP = 4;
-  // Popover offset must clear the settings row (~48px) above the tools row
-  const POPOVER_SIDE_OFFSET = 32 / 2 + 10 + 48; // 74
+  const BASE_SIDE_OFFSET = 32 / 2 + 10; // 26
+  // When settings row is visible, popover must clear it (~48px)
+  const SETTINGS_SIDE_OFFSET = BASE_SIDE_OFFSET + 48; // 74
+  // Settings row is visible when the active tool has settings
+  const settingsRowVisible =
+    !["selection", "eraser", "hand", "laser", "lasso"].includes(
+      activeTool.type,
+    ) || app.scene.getSelectedElements(app.state).length > 0;
 
   // hand, selection, freedraw, eraser, rectangle, arrow, others
   const MIN_TOOLS = 7;
@@ -368,7 +374,7 @@ export const MobileToolBar = ({
           namePrefix="selectionType"
           title={capitalizeString(t("toolBar.selection"))}
           data-testid="toolbar-selection"
-          sideOffset={POPOVER_SIDE_OFFSET}
+          sideOffset={BASE_SIDE_OFFSET}
           onToolChange={(type: string) => {
             if (type === "selection" || type === "lasso") {
               app.setActiveTool({ type });
@@ -398,7 +404,7 @@ export const MobileToolBar = ({
           defaultOption={preferredFreedraw}
           namePrefix="mobileFreedrawType"
           title={capitalizeString(t("toolBar.freedraw"))}
-          sideOffset={POPOVER_SIDE_OFFSET}
+          sideOffset={SETTINGS_SIDE_OFFSET}
           data-testid="mobile-toolbar-freedraw"
           onToolChange={(type: string) => {
             const isHighlighter = type === "highlighter";
@@ -441,7 +447,7 @@ export const MobileToolBar = ({
           activeTool={activeTool}
           defaultOption={lastActiveGenericShape}
           namePrefix="shapeType"
-          sideOffset={POPOVER_SIDE_OFFSET}
+          sideOffset={SETTINGS_SIDE_OFFSET}
           title={capitalizeString(
             t(
               lastActiveGenericShape === "rectangle"
@@ -477,7 +483,7 @@ export const MobileToolBar = ({
           activeTool={activeTool}
           defaultOption={lastActiveLinearElement}
           namePrefix="linearElementType"
-          sideOffset={POPOVER_SIDE_OFFSET}
+          sideOffset={SETTINGS_SIDE_OFFSET}
           title={capitalizeString(
             t(
               lastActiveLinearElement === "arrow"
@@ -580,7 +586,9 @@ export const MobileToolBar = ({
             className="App-toolbar__extra-tools-dropdown"
             side="top"
             align="end"
-            sideOffset={POPOVER_SIDE_OFFSET}
+            sideOffset={
+              settingsRowVisible ? SETTINGS_SIDE_OFFSET : BASE_SIDE_OFFSET
+            }
           >
             {!showTextToolOutside && (
               <DropdownMenu.Item
