@@ -363,11 +363,7 @@ import { actions } from "../actions/register";
 import { getShortcutFromShortcutName } from "../actions/shortcuts";
 import { trackEvent } from "../analytics";
 import { AnimationFrameHandler } from "../animation-frame-handler";
-import {
-  computeStraightenedPoints,
-  computeTargetPositions,
-  pathLength,
-} from "../straighten";
+import { computeStraightenResult, pathLength } from "../straighten";
 import {
   getDefaultAppState,
   isEraserActive,
@@ -8971,14 +8967,14 @@ class App extends React.Component<AppProps, AppState> {
   };
 
   private animateStraighten(element: ExcalidrawFreeDrawElement) {
-    const targetPoints = computeStraightenedPoints(element.points);
-    if (!targetPoints) {
+    const result = computeStraightenResult(element.points);
+    if (!result) {
       return;
     }
 
     isStraightening = true;
     const originalPoints = [...element.points];
-    const targets = computeTargetPositions(originalPoints, targetPoints);
+    const { animationTargets, finalPoints } = result;
     const startTime = performance.now();
 
     const animate = (now: number) => {
@@ -8992,10 +8988,11 @@ class App extends React.Component<AppProps, AppState> {
       const t = Math.min(elapsed / STRAIGHTEN_ANIMATION_DURATION, 1);
       const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
 
+      // animationTargets has same length as originalPoints
       const interpolated = originalPoints.map((orig, i) =>
         pointFrom<LocalPoint>(
-          orig[0] + (targets[i][0] - orig[0]) * eased,
-          orig[1] + (targets[i][1] - orig[1]) * eased,
+          orig[0] + (animationTargets[i][0] - orig[0]) * eased,
+          orig[1] + (animationTargets[i][1] - orig[1]) * eased,
         ),
       );
 
@@ -9005,12 +9002,12 @@ class App extends React.Component<AppProps, AppState> {
       if (t < 1) {
         straightenAnimationId = requestAnimationFrame(animate);
       } else {
-        const targetPressures = targetPoints.map(() =>
+        const finalPressures = finalPoints.map(() =>
           element.simulatePressure ? 0.5 : 1,
         );
         this.scene.mutateElement(element, {
-          points: targetPoints,
-          pressures: targetPressures,
+          points: finalPoints,
+          pressures: finalPressures,
         });
         this.setState({ newElement: element });
         straightenAnimationId = null;
