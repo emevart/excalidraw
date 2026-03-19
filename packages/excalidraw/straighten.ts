@@ -105,21 +105,31 @@ export const computeTargetPositions = (
   originalPoints: readonly LocalPoint[],
   targetPoints: readonly LocalPoint[],
 ): LocalPoint[] => {
-  const origLen = pathLength(originalPoints);
-  const targLen = pathLength(targetPoints);
-  if (origLen === 0) {
+  if (originalPoints.length < 2 || targetPoints.length < 2) {
     return [...originalPoints];
   }
-  const result: LocalPoint[] = [];
-  let accumulated = 0;
-  for (let i = 0; i < originalPoints.length; i++) {
-    if (i > 0) {
-      accumulated += pointDistance(originalPoints[i - 1], originalPoints[i]);
-    }
-    const t = accumulated / origLen;
-    result.push(pointAtLength(targetPoints, t * targLen));
+
+  // Use projection onto start→end line to get parameter t,
+  // NOT arc length (arc length of a wobbly path > straight line → compression)
+  const start = originalPoints[0];
+  const end = originalPoints[originalPoints.length - 1];
+  const dx = end[0] - start[0];
+  const dy = end[1] - start[1];
+  const lenSq = dx * dx + dy * dy;
+
+  if (lenSq === 0) {
+    return [...originalPoints];
   }
-  return result;
+
+  const targLen = pathLength(targetPoints);
+
+  return originalPoints.map((p) => {
+    const t = Math.max(
+      0,
+      Math.min(1, ((p[0] - start[0]) * dx + (p[1] - start[1]) * dy) / lenSq),
+    );
+    return pointAtLength(targetPoints, t * targLen);
+  });
 };
 
 export const computeStraightenedPoints = (
