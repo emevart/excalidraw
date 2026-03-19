@@ -116,6 +116,7 @@ export const MobileMenu = ({
         app={app}
         onHandToolToggle={onHandToolToggle}
         setAppState={setAppState}
+        renderAction={actionManager.renderAction}
       />
     );
   };

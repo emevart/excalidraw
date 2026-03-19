@@ -3,19 +3,25 @@
 .excalidraw {
   .mobile-toolbar {
     display: flex;
+    flex-direction: column;
     flex: 1;
+    border-radius: var(--space-factor);
+    overflow: visible;
+  }
+
+  .mobile-toolbar__tools-row {
+    display: flex;
     align-items: center;
     padding: 0px;
     gap: 4px;
-    border-radius: var(--space-factor);
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     justify-content: space-between;
-  }
 
-  .mobile-toolbar::-webkit-scrollbar {
-    display: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .mobile-toolbar .ToolIcon {
