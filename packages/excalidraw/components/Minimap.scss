@@ -36,8 +36,7 @@
     left: 0;
     background-color: var(--island-bg-color);
     border-radius: var(--border-radius-lg);
-    box-shadow: 0 0 0 1px var(--color-surface-lowest),
-      var(--shadow-island);
+    box-shadow: 0 0 0 1px var(--color-surface-lowest), var(--shadow-island);
     overflow: hidden;
     padding: 4px;
   }

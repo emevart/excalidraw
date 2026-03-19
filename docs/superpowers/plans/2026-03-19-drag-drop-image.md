@@ -15,6 +15,7 @@
 ### Task 1: Make problem card images draggable (billion-dollars)
 
 **Files:**
+
 - Modify: `h:\billion-dollars\apps\frontend\features\problems\components\shared\components\ProblemImages.tsx`
 
 - [ ] **Step 1: Add draggable + onDragStart to image elements**
@@ -47,6 +48,7 @@ git commit -m "feat: make problem card images draggable for whiteboard drop"
 ### Task 2: Handle image URL drops in excalidraw (excalidraw)
 
 **Files:**
+
 - Modify: `H:\excalidraw\packages\excalidraw\components\App.tsx` — `handleAppOnDrop` (line ~12477)
 
 **Context:** `handleAppOnDrop` handles drops in order: scene files → image files → library items → other files → text/embeddable. The new code path goes **before** the text/embeddable handler (line ~12579), so image URLs are caught before embeddable validation rejects them.
@@ -90,6 +92,7 @@ if (uriList) {
 ```
 
 Key design decisions:
+
 - Uses `text/uri-list` (set by our drag source), not `text/plain` — avoids catching arbitrary text drops
 - `ImageURLToFile` validates MIME type internally — only supported image formats pass
 - On failure, silently falls through to existing embeddable handler (no user-facing error)

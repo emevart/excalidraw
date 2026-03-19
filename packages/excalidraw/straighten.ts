@@ -1,6 +1,8 @@
 import { pointFrom, pointDistance } from "@excalidraw/math";
-import type { LocalPoint } from "@excalidraw/math";
+
 import { STRAIGHTEN_DEVIATION_THRESHOLD } from "@excalidraw/common";
+
+import type { LocalPoint } from "@excalidraw/math";
 
 const perpendicularDistance = (
   point: LocalPoint,
@@ -56,9 +58,7 @@ export const rdpSimplify = (
   return indices.map((i) => points[i]);
 };
 
-export const maxDeviationFromLine = (
-  points: readonly LocalPoint[],
-): number => {
+export const maxDeviationFromLine = (points: readonly LocalPoint[]): number => {
   if (points.length <= 2) {
     return 0;
   }

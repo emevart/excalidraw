@@ -35,12 +35,14 @@ const Footer = ({
       >
         <Stack.Col gap={2}>
           <Section heading="canvasActions">
-            <ZoomActions
-              renderAction={actionManager.renderAction}
-              zoom={appState.zoom}
-            />
+            <Stack.Row gap={2} align="center">
+              <MinimapToggle />
+              <ZoomActions
+                renderAction={actionManager.renderAction}
+                zoom={appState.zoom}
+              />
+            </Stack.Row>
           </Section>
-          <MinimapToggle />
         </Stack.Col>
       </div>
       <FooterCenterTunnel.Out />

@@ -641,6 +641,8 @@ let isHighlighterMode = false;
 let straightenTimerId: number | null = null;
 let straightenAnimationId: number | null = null;
 let isStraightening = false;
+// eslint-disable-next-line prefer-const -- reassigned in animateStraighten/pointerUp
+let wasStraightened = false;
 
 let isHoldingSpace: boolean = false;
 let isPanning: boolean = false;
@@ -9012,6 +9014,8 @@ class App extends React.Component<AppProps, AppState> {
         });
         this.setState({ newElement: element });
         straightenAnimationId = null;
+        isStraightening = false;
+        wasStraightened = true;
       }
     };
 
@@ -11214,6 +11218,14 @@ class App extends React.Component<AppProps, AppState> {
           cancelAnimationFrame(straightenAnimationId);
           straightenAnimationId = null;
           isStraightening = false;
+        }
+
+        // If stroke was straightened, finalize without adding a point
+        // (the straightened points are already set)
+        if (wasStraightened) {
+          wasStraightened = false;
+          this.actionManager.executeAction(actionFinalize);
+          return;
         }
 
         const pointerCoords = viewportCoordsToSceneCoords(

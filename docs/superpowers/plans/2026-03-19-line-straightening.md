@@ -15,6 +15,7 @@
 ### Task 1: Add straightening constants
 
 **Files:**
+
 - Modify: `H:\excalidraw\packages\common\src\constants.ts` (end of file, ~line 538)
 
 - [ ] **Step 1: Add constants**
@@ -41,6 +42,7 @@ git commit -m "feat: add line straightening constants"
 ### Task 2: Create straightening math utilities
 
 **Files:**
+
 - Create: `H:\excalidraw\packages\excalidraw\straighten.ts`
 
 - [ ] **Step 1: Implement RDP algorithm and straightening logic**
@@ -125,9 +127,7 @@ export const rdpSimplify = (
  * Compute max deviation of all points from the straight line
  * connecting the first and last point.
  */
-export const maxDeviationFromLine = (
-  points: readonly LocalPoint[],
-): number => {
+export const maxDeviationFromLine = (points: readonly LocalPoint[]): number => {
   if (points.length <= 2) {
     return 0;
   }
@@ -269,9 +269,11 @@ git commit -m "feat: add RDP simplification and straightening utilities"
 ### Task 3: Integrate stillness detection and animation into App.tsx
 
 **Files:**
+
 - Modify: `H:\excalidraw\packages\excalidraw\components\App.tsx`
 
 **Context:**
+
 - Freedraw pointerMove: lines ~10648-10677
 - Freedraw pointerUp: lines ~11119-11147
 - Module-level state pattern: already used for `toolSettings`, `isHighlighterMode`, etc.
