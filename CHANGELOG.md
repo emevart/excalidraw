@@ -4,6 +4,12 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/). Версионирование: [Semantic Versioning](https://semver.org/).
 
+## [0.26.61] - 2026-03-19
+
+### Исправлено
+
+- Спрямление: линия больше не сжимается — проекция на прямую вместо arc length parameterization
+
 ## [0.26.60] - 2026-03-19
 
 ### Исправлено
