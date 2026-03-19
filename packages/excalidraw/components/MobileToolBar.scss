@@ -12,15 +12,33 @@
   .mobile-toolbar__tools-row {
     display: flex;
     align-items: center;
-    padding: 0px;
+    padding: 0 4px;
     gap: 4px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    justify-content: space-between;
 
     &::-webkit-scrollbar {
       display: none;
+    }
+
+    // Show thin scrollbar on desktop (pointer: fine = mouse)
+    @media (pointer: fine) {
+      scrollbar-width: thin;
+
+      &::-webkit-scrollbar {
+        display: block;
+        height: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--default-border-color);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
     }
   }
 

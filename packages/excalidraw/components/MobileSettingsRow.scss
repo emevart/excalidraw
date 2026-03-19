@@ -28,6 +28,25 @@
       display: none;
     }
 
+    // Show thin scrollbar on desktop (pointer: fine = mouse)
+    @media (pointer: fine) {
+      scrollbar-width: thin;
+
+      &::-webkit-scrollbar {
+        display: block;
+        height: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--default-border-color);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+    }
+
     // Compact action styles — needed because the original rules
     // in Actions.scss are scoped under .compact-shape-actions
     .compact-action-item {
@@ -71,5 +90,17 @@
   .mobile-settings-row__item {
     flex-shrink: 0;
     pointer-events: all;
+  }
+
+  .mobile-settings-row__separator {
+    width: 1px;
+    height: 24px;
+    background: var(--default-border-color);
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+
+  .mobile-settings-row__variant {
+    flex-shrink: 0;
   }
 }
