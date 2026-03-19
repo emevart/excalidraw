@@ -4,6 +4,19 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/). Версионирование: [Semantic Versioning](https://semver.org/).
 
+## [0.26.65] - 2026-03-20
+
+### Добавлено
+
+- Upstream: text auto-resize handle — ручка сброса auto-resize справа от текстового блока
+- Upstream: вертикальное центрирование текста по курсору при создании
+- Upstream: привязка текста к сетке при создании (когда grid snap включён)
+- Upstream: валидация double-click по позиции и дистанции
+- Upstream: оптимизация `pointRotateRads` — ранний возврат при angle=0
+- Upstream: `Range` компонент рефакторинг в универсальный слайдер
+- Upstream: `getActiveTextElement` утилита для получения активного текстового элемента
+- Upstream: тип `editingTextElement` сужен до `ExcalidrawTextElement`
+
 ## [0.26.64] - 2026-03-19
 
 ### Исправлено
