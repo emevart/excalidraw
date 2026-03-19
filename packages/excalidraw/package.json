@@ -68,9 +68,9 @@
       "last 1 safari version"
     ]
   },
-  "repository": "https://github.com/excalidraw/excalidraw",
-  "bugs": "https://github.com/excalidraw/excalidraw/issues",
-  "homepage": "https://github.com/excalidraw/excalidraw/tree/master/packages/excalidraw",
+  "repository": "https://github.com/emevart/sdamexdraw",
+  "bugs": "https://github.com/emevart/sdamexdraw/issues",
+  "homepage": "https://github.com/emevart/sdamexdraw",
   "scripts": {
     "gen:types": "rimraf types && tsc",
     "build:esm": "rimraf dist && node ../../scripts/buildPackage.js && yarn gen:types"
