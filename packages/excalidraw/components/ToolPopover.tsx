@@ -35,8 +35,10 @@ type ToolPopoverProps = {
   fillable?: boolean;
   /** When provided, replaces the default setActiveTool+onToolChange in popup */
   onSelect?: (type: string) => void;
-  /** Override popup distance from trigger (default: 26) */
+  /** Override popup distance from anchor/trigger (default: 26) */
   sideOffset?: number;
+  /** Anchor element ref — popup positions relative to this instead of trigger */
+  anchorRef?: React.RefObject<HTMLElement | null>;
 };
 
 export const ToolPopover = ({
@@ -53,6 +55,7 @@ export const ToolPopover = ({
   fillable = false,
   onSelect,
   sideOffset: sideOffsetProp,
+  anchorRef,
 }: ToolPopoverProps) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const currentType = activeTool.type;
@@ -76,6 +79,11 @@ export const ToolPopover = ({
 
   return (
     <Popover.Root open={isPopupOpen}>
+      {anchorRef?.current && (
+        <Popover.Anchor
+          virtualRef={anchorRef as React.RefObject<HTMLElement>}
+        />
+      )}
       <Popover.Trigger asChild>
         <ToolButton
           className={clsx(className, {
@@ -98,6 +106,7 @@ export const ToolPopover = ({
 
       <Popover.Content
         className="tool-popover-content"
+        side="top"
         sideOffset={SIDE_OFFSET}
         collisionBoundary={container ?? undefined}
       >
