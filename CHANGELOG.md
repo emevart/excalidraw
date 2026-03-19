@@ -4,6 +4,12 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/). Версионирование: [Semantic Versioning](https://semver.org/).
 
+## [0.26.58] - 2026-03-19
+
+### Добавлено
+
+- `history.undo()` и `history.redo()` в ExcalidrawImperativeAPI для программного вызова из внешних тулбаров
+
 ## [0.26.57] - 2026-03-19
 
 ### Добавлено

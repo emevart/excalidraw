@@ -682,6 +682,7 @@ class App extends React.Component<AppProps, AppState> {
   private store: Store;
   private history: History;
   private undoAction!: Action;
+  private redoAction!: Action;
   public excalidrawContainerValue: {
     container: HTMLDivElement | null;
     id: string;
@@ -817,6 +818,8 @@ class App extends React.Component<AppProps, AppState> {
         this.getSceneElementsMapIncludingDeleted,
       history: {
         clear: this.resetHistory,
+        undo: () => this.actionManager.executeAction(this.undoAction, "api"),
+        redo: () => this.actionManager.executeAction(this.redoAction, "api"),
       },
       scrollToContent: this.scrollToContent,
       getSceneElements: this.getSceneElements,
@@ -905,8 +908,9 @@ class App extends React.Component<AppProps, AppState> {
 
     this.actionManager.registerAll(actions);
     this.undoAction = createUndoAction(this.history);
+    this.redoAction = createRedoAction(this.history);
     this.actionManager.registerAction(this.undoAction);
-    this.actionManager.registerAction(createRedoAction(this.history));
+    this.actionManager.registerAction(this.redoAction);
 
     // in case internal editor APIs call this early, otherwise we need
     // to construct this in componentDidMount because componentWillUnmount
