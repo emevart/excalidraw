@@ -187,27 +187,6 @@
   overflow-x: hidden;
 }
 
-.mobile-shape-actions {
-  z-index: 999;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  width: 100%;
-  background: transparent;
-  border-radius: var(--border-radius-lg);
-  box-shadow: none;
-  overflow: none;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  transition: visibility 0s, opacity 0.15s ease-out;
-}
-
-// Hide shape actions when any toolbar dropdown is open
-.App-bottom-bar:has(.App-toolbar [data-state="open"]) > .mobile-shape-actions {
-  visibility: hidden;
-  opacity: 0;
-}
-
 .shape-actions-theme-scope {
   --button-border: transparent;
   --button-bg: var(--color-surface-mid);

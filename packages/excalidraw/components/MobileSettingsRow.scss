@@ -2,8 +2,7 @@
   .mobile-settings-row {
     overflow: hidden;
     transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.2s ease-out,
-                padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity 0.2s ease-out, padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     max-height: 40px;
     opacity: 1;
     padding: 4px 8px;

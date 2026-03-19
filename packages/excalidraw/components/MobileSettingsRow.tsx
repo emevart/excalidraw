@@ -20,10 +20,10 @@ import {
 } from "./Actions";
 import { useExcalidrawContainer } from "./App";
 
+import "./MobileSettingsRow.scss";
+
 import type { AppClassProperties, AppState, UIAppState } from "../types";
 import type { ActionManager } from "../actions/manager";
-
-import "./MobileSettingsRow.scss";
 
 /** Tools that have no settings row */
 const TOOLS_WITHOUT_SETTINGS = new Set([
