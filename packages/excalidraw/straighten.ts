@@ -52,7 +52,7 @@ export const pathLength = (points: readonly LocalPoint[]): number => {
  */
 const smoothPoints = (
   points: readonly LocalPoint[],
-  radius: number = 8,
+  radius: number = 3,
 ): LocalPoint[] => {
   const n = points.length;
   if (n <= 2) {
