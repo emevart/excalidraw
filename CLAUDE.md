@@ -38,6 +38,10 @@
 - **LaserPointer freedraw rendering** -- replaced perfect-freehand with `@excalidraw/laser-pointer` for freedraw outline generation; 75° corner detection eliminates spike artifacts (`packages/element/src/shape.ts`)
 - **i18n Russian complete** -- all keys translated + 13 quality fixes (crowfoot→вороньи лапки, typos, awkward translations) (`packages/excalidraw/locales/ru-RU.json`)
 - **Zoom controls alignment** -- uses `--editor-container-padding` like toolbar (`packages/excalidraw/css/styles.scss`)
+- **Hold-to-straighten** -- Procreate-style: holding freedraw pointer still 500ms straightens to line (low deviation) or smooths curve (moving average, radius=3). Stillness timer in pointerMove, animation via rAF, `wasStraightened` flag skips final point append on pointerUp (`packages/excalidraw/components/App.tsx`, `packages/excalidraw/straighten.ts`, `packages/common/src/constants.ts`)
+- **Image URL drop** -- `handleAppOnDrop` handles `text/uri-list` drops: fetch URL via `ImageURLToFile` → `insertImages()`. Enables drag from external sources (`packages/excalidraw/components/App.tsx`)
+- **Minimap** -- toggleable canvas minimap left of zoom controls in Footer. Renders actual element shapes (freedraw paths, lines, ellipses, diamonds, rectangles). Click/drag to navigate. Hidden on phone formFactor and zen mode (`packages/excalidraw/components/Minimap.tsx`, `packages/excalidraw/components/Minimap.scss`, `packages/excalidraw/components/footer/Footer.tsx`)
+- **ExcalidrawImperativeAPI undo/redo** -- `history.undo()` and `history.redo()` methods exposed via API for programmatic calls from external toolbars (`packages/excalidraw/components/App.tsx`, `packages/excalidraw/types.ts`)
 
 ## Development Flow
 
@@ -62,7 +66,7 @@ yarn test:typecheck   # TypeScript type checking
 4. Create and push tag:
 
 ```bash
-git tag v0.26.57
+git tag v0.26.64
 git push --tags
 ```
 
@@ -133,3 +137,5 @@ NPM_TOKEN=<token> npm install @emevart/excalidraw@<version>
 - **Touch identifier tracking** -- always use `touch.identifier` to match fingers across touchstart/touchend events. Array index matching fails when fingers lift separately.
 - **Polygon preset HACK guards** -- two guards in App.tsx disable transform handles for linear elements on mobile. Polygon presets (`element.polygon === true`) must be excluded from these guards.
 - **Tests** -- 38 из 104 test files падают из-за кастомизаций форка. Тесты не включены в CI. `NODE_OPTIONS="--max-old-space-size=8192"` нужен для запуска на Windows.
+- **Freedraw point count sensitivity** -- LaserPointer renderer draws visually different (shorter/thinner) strokes when point count changes. Never reduce freedraw point count (RDP 200→5 or straight 200→2 causes visible shrinking). Keep same count, change positions only.
+- **CI publish E403** -- `publish.yml` has `packages: write` but GitHub org/repo settings may block `GITHUB_TOKEN` write_package. Current workaround: local `npm publish` with token from `~/.npmrc`.
