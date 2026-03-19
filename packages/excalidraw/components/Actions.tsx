@@ -337,7 +337,7 @@ export const SelectedShapeActions = ({
   );
 };
 
-const CombinedShapeProperties = ({
+export const CombinedShapeProperties = ({
   appState,
   renderAction,
   setAppState,
@@ -440,7 +440,7 @@ const CombinedShapeProperties = ({
   );
 };
 
-const CombinedArrowProperties = ({
+export const CombinedArrowProperties = ({
   appState,
   renderAction,
   setAppState,
@@ -538,7 +538,7 @@ const CombinedArrowProperties = ({
   );
 };
 
-const CombinedTextProperties = ({
+export const CombinedTextProperties = ({
   appState,
   renderAction,
   setAppState,
@@ -630,7 +630,7 @@ const CombinedTextProperties = ({
   );
 };
 
-const CombinedExtraActions = ({
+export const CombinedExtraActions = ({
   appState,
   renderAction,
   targetElements,
@@ -784,7 +784,7 @@ const CombinedExtraActions = ({
   );
 };
 
-const LinearEditorAction = ({
+export const LinearEditorAction = ({
   appState,
   renderAction,
   targetElements,
