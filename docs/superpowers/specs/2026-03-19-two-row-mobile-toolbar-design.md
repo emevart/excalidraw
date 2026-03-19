@@ -1,7 +1,6 @@
 # Two-Row Mobile Toolbar
 
-**Date:** 2026-03-19
-**Status:** Approved
+**Date:** 2026-03-19 **Status:** Approved
 
 ## Problem
 
@@ -35,7 +34,7 @@ Replace the two separate bars (MobileShapeActions + toolbar) with a single unifi
 ### Context-Sensitive Settings Per Tool
 
 | Tool | Settings shown |
-|------|---------------|
+| --- | --- |
 | Pencil | stroke color, stroke width, opacity |
 | Highlighter | stroke color, stroke width, opacity |
 | Rectangle/Shape | stroke color, fill color, stroke width, stroke style |
@@ -72,7 +71,7 @@ Dropdowns (shape presets, line variants, pencil/marker toggle) pop up ABOVE the 
 ## Files to Modify
 
 | File | Change |
-|------|--------|
+| --- | --- |
 | `packages/excalidraw/components/MobileMenu.tsx` | Replace MobileShapeActions + Island.App-toolbar with new UnifiedMobileToolbar |
 | `packages/excalidraw/components/MobileToolBar.tsx` | Major refactor — add settings row, contextual settings rendering, expand/collapse logic |
 | `packages/excalidraw/components/MobileToolBar.scss` | New styles for two-row layout, animations, settings row |

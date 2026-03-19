@@ -15,7 +15,7 @@
 ## File Structure
 
 | File | Action | Responsibility |
-|------|--------|---------------|
+| --- | --- | --- |
 | `packages/excalidraw/components/MobileSettingsRow.tsx` | **Create** | Context-sensitive settings row component. Reads active tool + selected elements, renders appropriate action buttons inline. |
 | `packages/excalidraw/components/MobileSettingsRow.scss` | **Create** | Styles for settings row: layout, expand/collapse animation, separator styling. |
 | `packages/excalidraw/components/MobileToolBar.tsx` | **Modify** | Import and render `MobileSettingsRow` above the tools row inside the same Island. |
@@ -29,6 +29,7 @@
 ### Task 1: Create MobileSettingsRow component
 
 **Files:**
+
 - Create: `packages/excalidraw/components/MobileSettingsRow.tsx`
 - Create: `packages/excalidraw/components/MobileSettingsRow.scss`
 
@@ -159,9 +160,8 @@ Note: The exact imports for `hasStrokeWidth`, `hasStrokeStyle`, `canChangeRoundn
 .excalidraw {
   .mobile-settings-row {
     overflow: hidden;
-    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.2s ease-out,
-                padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s
+        ease-out, padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     max-height: 40px;
     opacity: 1;
     padding: 4px 8px;
@@ -213,6 +213,7 @@ git commit -m "feat(mobile): add MobileSettingsRow component for two-row toolbar
 ### Task 2: Integrate MobileSettingsRow into MobileToolBar
 
 **Files:**
+
 - Modify: `packages/excalidraw/components/MobileToolBar.tsx`
 - Modify: `packages/excalidraw/components/MobileToolBar.scss`
 
@@ -225,6 +226,7 @@ The MobileToolBar currently returns a flat `<div className="mobile-toolbar">` wi
 The component currently receives `app` (AppClassProperties) — from which we can get `app.scene.getNonDeletedElementsMap()` and `app.state`. But `renderAction` must come from the parent. Add it as a prop.
 
 In `MobileToolBar.tsx`, update the props type to include:
+
 ```tsx
 renderAction: ActionManager["renderAction"];
 ```
@@ -258,9 +260,9 @@ Move all the existing tool button JSX (HandButton, ToolPopovers, ToolButtons, Dr
 .excalidraw {
   .mobile-toolbar {
     display: flex;
-    flex-direction: column;  /* changed from implicit row */
+    flex-direction: column; /* changed from implicit row */
     border-radius: var(--space-factor);
-    overflow: visible;  /* allow dropdowns to escape */
+    overflow: visible; /* allow dropdowns to escape */
   }
 
   .mobile-toolbar__tools-row {
@@ -290,13 +292,14 @@ Move all the existing tool button JSX (HandButton, ToolPopovers, ToolButtons, Dr
 In `MobileMenu.tsx`, the `renderToolbar()` function (defined around line 96-120) creates `<MobileToolBar>`. Add `renderAction={actionManager.renderAction}` prop.
 
 Check `MobileMenu.tsx` line ~96:
+
 ```tsx
 const renderToolbar = () => (
   <MobileToolBar
     activeTool={appState.activeTool}
     // ... existing props ...
-    renderAction={actionManager.renderAction}  // ADD THIS
-    setAppState={setAppState}                  // ADD THIS if not already passed
+    renderAction={actionManager.renderAction} // ADD THIS
+    setAppState={setAppState} // ADD THIS if not already passed
   />
 );
 ```
@@ -317,6 +320,7 @@ git commit -m "feat(mobile): integrate settings row into two-row toolbar layout"
 ### Task 3: Remove MobileShapeActions from MobileMenu
 
 **Files:**
+
 - Modify: `packages/excalidraw/components/MobileMenu.tsx`
 - Modify: `packages/excalidraw/components/Actions.scss`
 
@@ -325,12 +329,16 @@ Now that MobileToolBar has its own settings row, remove the separate MobileShape
 - [ ] **Step 1: Remove MobileShapeActions from MobileMenu.tsx**
 
 In `MobileMenu.tsx`:
+
 - Remove `MobileShapeActions` from import (line 10)
 - Remove `<MobileShapeActions ... />` rendering (lines 139-145)
 - The `App-bottom-bar` should now only contain the `Island.App-toolbar`:
 
 ```tsx
-<div className="App-bottom-bar" style={{ marginBottom: SCROLLBAR_WIDTH + SCROLLBAR_MARGIN }}>
+<div
+  className="App-bottom-bar"
+  style={{ marginBottom: SCROLLBAR_WIDTH + SCROLLBAR_MARGIN }}
+>
   <Island className="App-toolbar">
     {!appState.viewModeEnabled &&
       appState.openDialog?.name !== "elementLinkSelector" &&
@@ -374,6 +382,7 @@ git commit -m "refactor(mobile): remove MobileShapeActions, use two-row toolbar"
 ### Task 4: Adjust dropdown positioning for new toolbar height
 
 **Files:**
+
 - Modify: `packages/excalidraw/components/ToolPopover.tsx` (possibly)
 - Modify: `packages/excalidraw/components/ToolPopover.scss`
 
@@ -448,6 +457,7 @@ Verify `package.json` and `package-lock.json` both updated.
 - [ ] **Step 5: Test on mobile device**
 
 Open sdamex.com on phone or DevTools phone emulation:
+
 - Select pencil → settings row expands with color/width/opacity buttons
 - Select rectangle → settings row shows color/fill/width/style buttons
 - Select hand → settings row collapses smoothly
