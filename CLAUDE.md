@@ -1,20 +1,19 @@
 # CLAUDE.md
 
-> Fork of excalidraw for SdamEx (sdamex.com) -- whiteboard component for math problem solving. Published as `@emevart/excalidraw` to GitHub Packages.
+> SdamExDraw — интерактивная доска для решения задач на sdamex.com. Публикуется как `@emevart/excalidraw` в GitHub Packages. Репо: `emevart/sdamexdraw`.
 
 ## Project Structure
 
-Excalidraw is a **monorepo** with a clear separation between the core library and the application:
+Монорепо на Yarn workspaces:
 
-- **`packages/excalidraw/`** - Main React component library, published as `@emevart/excalidraw`
-- **`packages/common/`** - Shared utilities (`@excalidraw/common`)
-- **`packages/element/`**, **`packages/math/`**, **`packages/utils/`** - Core packages
-- **`excalidraw-app/`** - Full-featured web application (excalidraw.com), not used by us
-- **`e2e/`** - Playwright visual tests
+- **`packages/excalidraw/`** — основная React-библиотека, публикуется как `@emevart/excalidraw`
+- **`packages/common/`**, **`packages/element/`**, **`packages/math/`**, **`packages/utils/`** — внутренние пакеты (бандлятся в excalidraw, не публикуются отдельно)
+- **`excalidraw-app/`** — демо-приложение excalidraw.com (не используется)
+- **`e2e/`** — Playwright визуальные тесты
 
 ## Fork Customizations
 
-What we changed vs upstream (upstream tag: `v0.18.0`):
+Создано на основе excalidraw (upstream tag: `v0.18.0`). Форк расходится с upstream, в upstream не контрибьютим.
 
 - **Compact styles panel** -- forced for all non-phone devices (`deriveStylesPanelMode` in `packages/common/src/editorInterface.ts`)
 - **Russian keyboard ЙЦУКЕН** -- hotkeys work on Russian layout via `getLatinKey()` + Proxy in `App.tsx` (`packages/common/src/keys.ts`, `packages/excalidraw/components/App.tsx`, `packages/excalidraw/components/shapes.tsx`)
@@ -45,41 +44,42 @@ What we changed vs upstream (upstream tag: `v0.18.0`):
 ### Making Changes
 
 1. Edit code in `packages/*`
-2. Run all checks before committing:
+2. Run checks before committing:
 
 ```bash
 yarn fix              # Auto-fix lint + formatting (must pass with 0 warnings)
 yarn test:typecheck   # TypeScript type checking
-cd packages/excalidraw && yarn build:esm   # Build package (includes type generation)
 ```
 
-3. Bump version in `packages/excalidraw/package.json`
-4. Commit and push to `master`
+3. Commit and push to `master`
+4. CI (`ci.yml`) автоматически проверит typecheck + build
 
-### Publishing to GitHub Packages
+### Releasing a Version
+
+1. Bump version in `packages/excalidraw/package.json`
+2. Update `CHANGELOG.md` — добавить секцию для новой версии
+3. Commit, push to `master`
+4. Create and push tag:
 
 ```bash
-cd packages/excalidraw
-yarn build:esm                    # Build dist/
-NPM_TOKEN=<token> npm publish    # Publish to npm.pkg.github.com
+git tag v0.26.57
+git push --tags
 ```
 
-Package config:
+5. CI (`publish.yml`) автоматически сбилдит и опубликует в GitHub Packages
 
-- **Registry:** `https://npm.pkg.github.com`
-- **Name:** `@emevart/excalidraw`
-- **Files:** `dist/` directory
+> **Debug-версии** (e.g. `0.26.57-debug.1`) — для итераций. Финальная версия — чистый bumр без суффикса.
 
 ### Delivering to Production (SdamEx)
 
-1. Publish new version (see above)
+1. Wait for publish CI to complete
 2. In `h:/billion-dollars/apps/frontend/`:
 
 ```bash
 NPM_TOKEN=<token> npm install @emevart/excalidraw@<version>
 ```
 
-3. Verify `package.json` AND `package-lock.json` both updated (CI uses `npm ci` which requires sync)
+3. Verify `package.json` AND `package-lock.json` both updated (`npm ci` requires sync)
 4. Commit both files, push to `develop`
 5. Create PR `develop` -> `main`, enable auto-merge
 6. CI runs: lint, typecheck, build, tests
@@ -90,12 +90,19 @@ NPM_TOKEN=<token> npm install @emevart/excalidraw@<version>
 ```
 - [ ] yarn fix (0 warnings)
 - [ ] yarn test:typecheck
-- [ ] yarn build:esm
 - [ ] Version bumped in package.json
-- [ ] Published to GitHub Packages
+- [ ] CHANGELOG.md updated
+- [ ] Tag pushed (v*) — CI publishes automatically
 - [ ] Installed in billion-dollars (package.json + package-lock.json)
 - [ ] Dev server tested locally
 ```
+
+## CI / Branch Protection
+
+- **`ci.yml`** — typecheck + build on push to master
+- **`publish.yml`** — automated npm publish on `v*` tags (typecheck + build + publish)
+- **Branch protection on master** — force push и удаление ветки запрещены
+- PRs для `gh pr create` — всегда `--repo emevart/sdamexdraw` (НЕ upstream)
 
 ## Architecture Notes
 
@@ -105,6 +112,7 @@ NPM_TOKEN=<token> npm install @emevart/excalidraw@<version>
 - Internal packages use path aliases (see `vitest.config.mts`)
 - Build system uses esbuild for packages, Vite for the app
 - TypeScript throughout with strict configuration
+- `@excalidraw/common`, `@excalidraw/element`, `@excalidraw/math` are bundled via alias in `scripts/buildPackage.js`
 
 ### Key Interfaces
 
@@ -124,3 +132,4 @@ NPM_TOKEN=<token> npm install @emevart/excalidraw@<version>
 - **LaserPointer size = radius** -- unlike perfect-freehand where size = diameter. When configuring `sizeMapping`, ensure `size * sizeMapping() >= 1.1` for proper start cap generation.
 - **Touch identifier tracking** -- always use `touch.identifier` to match fingers across touchstart/touchend events. Array index matching fails when fingers lift separately.
 - **Polygon preset HACK guards** -- two guards in App.tsx disable transform handles for linear elements on mobile. Polygon presets (`element.polygon === true`) must be excluded from these guards.
+- **Tests** -- 38 из 104 test files падают из-за кастомизаций форка. Тесты не включены в CI. `NODE_OPTIONS="--max-old-space-size=8192"` нужен для запуска на Windows.
