@@ -12479,6 +12479,11 @@ class App extends React.Component<AppProps, AppState> {
       event,
       this.state,
     );
+
+    // Must be retrieved synchronously before any await — browsers clear
+    // DataTransfer after the synchronous portion of the event handler.
+    const uriList = event.dataTransfer.getData("text/uri-list");
+
     const dataTransferList = await parseDataTransferEvent(event);
 
     // must be retrieved first, in the same frame
@@ -12573,6 +12578,26 @@ class App extends React.Component<AppProps, AppState> {
       if (file) {
         // Attempt to parse an excalidraw/excalidrawlib file
         await this.loadFileToCanvas(file, fileHandle);
+      }
+    }
+
+    // Handle image URL drops (e.g., dragged from problem card)
+    if (uriList) {
+      const imageUrl = uriList
+        .split("\n")
+        .find((line) => !line.startsWith("#"))
+        ?.trim();
+
+      if (imageUrl && /^https?:\/\//i.test(imageUrl)) {
+        try {
+          const file = await ImageURLToFile(imageUrl);
+          if (file) {
+            await this.insertImages([file], sceneX, sceneY);
+            return;
+          }
+        } catch {
+          // Not a valid image URL — fall through to embeddable handler
+        }
       }
     }
 
