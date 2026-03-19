@@ -4,6 +4,13 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/). Версионирование: [Semantic Versioning](https://semver.org/).
 
+## [0.26.62] - 2026-03-19
+
+### Исправлено
+
+- Спрямление кривых: moving average сглаживание вместо RDP simplification — сохраняет форму и длину кривой
+- Спрямление прямых: проекция на линию start→end
+
 ## [0.26.61] - 2026-03-19
 
 ### Исправлено
