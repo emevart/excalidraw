@@ -536,3 +536,11 @@ export const BIND_MODE_TIMEOUT = 700; // ms
 export const MOBILE_ACTION_BUTTON_BG = {
   background: "var(--mobile-action-button-bg)",
 } as const;
+
+// Line straightening (hold-to-straighten)
+export const STRAIGHTEN_HOLD_TIME = 500;
+export const STRAIGHTEN_MOVE_THRESHOLD = 3;
+export const STRAIGHTEN_MOVE_THRESHOLD_TOUCH = 5;
+export const STRAIGHTEN_MIN_LENGTH = 20;
+export const STRAIGHTEN_DEVIATION_THRESHOLD = 0.1;
+export const STRAIGHTEN_ANIMATION_DURATION = 250;
