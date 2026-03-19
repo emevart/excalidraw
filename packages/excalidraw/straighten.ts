@@ -133,7 +133,7 @@ export const computeStraightenResult = (
 
     return {
       animationTargets,
-      finalPoints: [start, end],
+      finalPoints: animationTargets,
     };
   }
 
