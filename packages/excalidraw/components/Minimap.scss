@@ -1,0 +1,50 @@
+.minimap {
+  position: relative;
+  pointer-events: var(--ui-pointerEvents);
+
+  &__toggle {
+    background-color: var(--island-bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 0 0 1px var(--color-surface-lowest);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    color: var(--icon-fill-color);
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    &--active {
+      background-color: var(--color-primary);
+      color: var(--color-icon-white);
+
+      &:hover {
+        background-color: var(--color-primary-darker);
+      }
+    }
+  }
+
+  &__canvas-container {
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 0;
+    background-color: var(--island-bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 0 0 1px var(--color-surface-lowest),
+      var(--shadow-island);
+    overflow: hidden;
+    padding: 4px;
+  }
+
+  &__canvas {
+    display: block;
+    border-radius: calc(var(--border-radius-lg) - 4px);
+    cursor: pointer;
+  }
+}
