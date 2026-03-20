@@ -548,6 +548,6 @@ export const STRAIGHTEN_ANIMATION_DURATION = 250;
 // Snap-to-first threshold for closing polygon from line tool
 export const LINE_CLOSE_SNAP_THRESHOLD = 20; // scene-px (divided by zoomValue at usage site)
 
-export const STRAIGHTEN_CLOSE_THRESHOLD = 50; // px — max gap for auto-close
+export const STRAIGHTEN_CLOSE_THRESHOLD = 30; // px — max gap for auto-close
 export const STRAIGHTEN_CORNER_WINDOW = 6; // points each side for corner detection
 export const STRAIGHTEN_CORNER_ANGLE = 35; // degrees — min angle to be a corner
