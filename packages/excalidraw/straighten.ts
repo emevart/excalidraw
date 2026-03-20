@@ -357,7 +357,11 @@ export const computeStraightenResult = (
   }
 
   // Step 3: Smart smoothing with corner detection
-  const corners = detectCorners(workingPoints, isClosed);
+  let corners = detectCorners(workingPoints, isClosed);
+  // Density filter: if too many corners, it's a smooth curve, not a polygon
+  if (corners.length > workingPoints.length * 0.3) {
+    corners = [];
+  }
   const smoothed = smoothBySegments(workingPoints, corners, isClosed);
 
   return { animationTargets: smoothed, finalPoints: smoothed };
