@@ -642,6 +642,13 @@ let isStraightening = false;
 // eslint-disable-next-line prefer-const -- reassigned in animateStraighten/pointerUp
 let wasStraightened = false;
 
+let isStraightenTransforming = false;
+let transformAnchor: { x: number; y: number } | null = null;
+let transformInitialAngle = 0;
+let transformInitialDist = 0;
+let transformInitialPoints: readonly LocalPoint[] | null = null;
+let transformEntryPos: { x: number; y: number } | null = null;
+
 let isHoldingSpace: boolean = false;
 let isPanning: boolean = false;
 let isDraggingScrollBar: boolean = false;
@@ -9183,7 +9190,50 @@ class App extends React.Component<AppProps, AppState> {
         this.setState({ newElement: element });
         straightenAnimationId = null;
         isStraightening = false;
-        wasStraightened = true;
+
+        // Enter transform mode (Procreate-style drag/rotate/scale)
+        const pts = finalPoints;
+        const isClosed =
+          pts.length > 2 && pointDistance(pts[0], pts[pts.length - 1]) < 1;
+
+        // Anchor: centroid for closed shapes, first point for open
+        let anchorLocalX: number;
+        let anchorLocalY: number;
+        if (isClosed) {
+          let sx = 0;
+          let sy = 0;
+          for (const p of pts) {
+            sx += p[0];
+            sy += p[1];
+          }
+          anchorLocalX = sx / pts.length;
+          anchorLocalY = sy / pts.length;
+        } else {
+          anchorLocalX = pts[0][0];
+          anchorLocalY = pts[0][1];
+        }
+        transformAnchor = {
+          x: element.x + anchorLocalX,
+          y: element.y + anchorLocalY,
+        };
+        transformInitialPoints = [...finalPoints];
+
+        const lastPt = pts[pts.length - 1];
+        const cursorX = element.x + lastPt[0];
+        const cursorY = element.y + lastPt[1];
+        transformInitialAngle = Math.atan2(
+          cursorY - transformAnchor.y,
+          cursorX - transformAnchor.x,
+        );
+        transformInitialDist = Math.max(
+          1,
+          pointDistance(
+            pointFrom(cursorX, cursorY),
+            pointFrom(transformAnchor.x, transformAnchor.y),
+          ),
+        );
+        transformEntryPos = { x: cursorX, y: cursorY };
+        isStraightenTransforming = true;
       }
     };
 
@@ -10880,6 +10930,64 @@ class App extends React.Component<AppProps, AppState> {
         }
 
         if (newElement.type === "freedraw") {
+          // Transform mode: rotate/scale after straightening
+          if (
+            isStraightenTransforming &&
+            transformAnchor &&
+            transformInitialPoints
+          ) {
+            const cursorX = pointerCoords.x;
+            const cursorY = pointerCoords.y;
+
+            // Dead zone: ignore tiny movements on touch
+            if (transformEntryPos) {
+              const entryDist = Math.sqrt(
+                (cursorX - transformEntryPos.x) ** 2 +
+                  (cursorY - transformEntryPos.y) ** 2,
+              );
+              if (entryDist < 5) {
+                return;
+              }
+            }
+
+            const currentAngle = Math.atan2(
+              cursorY - transformAnchor.y,
+              cursorX - transformAnchor.x,
+            );
+            const currentDist = Math.max(
+              1,
+              Math.sqrt(
+                (cursorX - transformAnchor.x) ** 2 +
+                  (cursorY - transformAnchor.y) ** 2,
+              ),
+            );
+
+            const deltaAngle = currentAngle - transformInitialAngle;
+            const scale = Math.max(
+              0.1,
+              Math.min(10, currentDist / transformInitialDist),
+            );
+            const cos = Math.cos(deltaAngle);
+            const sin = Math.sin(deltaAngle);
+
+            // Anchor in local coords
+            const anchorLocalX = transformAnchor.x - newElement.x;
+            const anchorLocalY = transformAnchor.y - newElement.y;
+
+            const newPoints = transformInitialPoints.map((p) => {
+              const dx = p[0] - anchorLocalX;
+              const dy = p[1] - anchorLocalY;
+              return pointFrom<LocalPoint>(
+                anchorLocalX + (dx * cos - dy * sin) * scale,
+                anchorLocalY + (dx * sin + dy * cos) * scale,
+              );
+            });
+
+            this.scene.mutateElement(newElement, { points: newPoints });
+            this.setState({ newElement });
+            return;
+          }
+
           if (isStraightening) {
             return;
           }
@@ -11388,8 +11496,16 @@ class App extends React.Component<AppProps, AppState> {
           isStraightening = false;
         }
 
-        // If stroke was straightened, finalize without adding a point
-        // (the straightened points are already set)
+        // Transform mode: finalize on pointer up
+        if (isStraightenTransforming) {
+          isStraightenTransforming = false;
+          transformAnchor = null;
+          transformInitialPoints = null;
+          transformEntryPos = null;
+          this.actionManager.executeAction(actionFinalize);
+          return;
+        }
+
         if (wasStraightened) {
           wasStraightened = false;
           this.actionManager.executeAction(actionFinalize);
