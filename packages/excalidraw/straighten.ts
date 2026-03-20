@@ -423,14 +423,5 @@ export const computeStraightenResult = (
   }
   const smoothed = smoothBySegments(workingPoints, corners, isClosed);
 
-  // For closed shapes: overlap last few points with first few
-  // to eliminate visual gap from LaserPointer start/end caps
-  if (isClosed && smoothed.length > 6) {
-    const overlap = Math.min(3, Math.floor(smoothed.length / 10));
-    for (let i = 0; i < overlap; i++) {
-      smoothed[smoothed.length - 1 - i] = smoothed[i];
-    }
-  }
-
   return { animationTargets: smoothed, finalPoints: smoothed };
 };
