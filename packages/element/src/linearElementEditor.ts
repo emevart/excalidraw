@@ -16,6 +16,7 @@ import { getCurvePathOps } from "@excalidraw/utils/shape";
 import {
   DRAGGING_THRESHOLD,
   KEYS,
+  LINE_CLOSE_SNAP_THRESHOLD,
   shouldRotateWithDiscreteAngle,
   getGridPoint,
   invariant,
@@ -340,6 +341,23 @@ export class LinearElementEditor {
       );
       deltaX = newDraggingPointPosition[0] - point[0];
       deltaY = newDraggingPointPosition[1] - point[1];
+
+      // Snap-to-first: if trailing point is near first point, snap to close polygon
+      if (element.points.length >= 3) {
+        const newPointX = point[0] + deltaX;
+        const newPointY = point[1] + deltaY;
+        const firstPoint = element.points[0];
+        const distToFirst = pointDistance(
+          pointFrom(newPointX, newPointY),
+          firstPoint,
+        );
+        const zoomValue = app.state.zoom.value;
+        const threshold = LINE_CLOSE_SNAP_THRESHOLD / zoomValue;
+        if (distToFirst < threshold && distToFirst > 0) {
+          deltaX = firstPoint[0] - point[0];
+          deltaY = firstPoint[1] - point[1];
+        }
+      }
     }
 
     // Apply the point movement if needed

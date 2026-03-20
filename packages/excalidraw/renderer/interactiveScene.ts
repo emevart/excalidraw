@@ -1698,6 +1698,29 @@ const _renderInteractiveSceneInner = ({
     );
   }
 
+  // Close indicator: show circle on first point when trailing point is snapped to it
+  if (editingLinearElement && editingLinearElement.points.length >= 3) {
+    const firstPoint = editingLinearElement.points[0];
+    const lastPoint =
+      editingLinearElement.points[editingLinearElement.points.length - 1];
+    const dist = pointDistance(firstPoint, lastPoint);
+    if (dist < 1) {
+      context.save();
+      context.translate(appState.scrollX, appState.scrollY);
+      const globalX = editingLinearElement.x + firstPoint[0];
+      const globalY = editingLinearElement.y + firstPoint[1];
+      context.beginPath();
+      context.arc(globalX, globalY, 8 / appState.zoom.value, 0, Math.PI * 2);
+      context.strokeStyle =
+        appState.theme === "dark"
+          ? "rgba(99, 102, 241, 0.7)"
+          : "rgba(99, 102, 241, 0.6)";
+      context.lineWidth = 2 / appState.zoom.value;
+      context.stroke();
+      context.restore();
+    }
+  }
+
   // Paint selection element
   if (appState.selectionElement && !appState.isCropping) {
     try {

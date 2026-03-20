@@ -544,3 +544,6 @@ export const STRAIGHTEN_MOVE_THRESHOLD_TOUCH = 5;
 export const STRAIGHTEN_MIN_LENGTH = 20;
 export const STRAIGHTEN_DEVIATION_THRESHOLD = 0.1;
 export const STRAIGHTEN_ANIMATION_DURATION = 250;
+
+// Snap-to-first threshold for closing polygon from line tool
+export const LINE_CLOSE_SNAP_THRESHOLD = 20; // scene-px (divided by zoomValue at usage site)
