@@ -1,6 +1,11 @@
 import { pointFrom, pointDistance } from "@excalidraw/math";
 
-import { STRAIGHTEN_DEVIATION_THRESHOLD } from "@excalidraw/common";
+import {
+  STRAIGHTEN_DEVIATION_THRESHOLD,
+  STRAIGHTEN_CLOSE_THRESHOLD,
+  STRAIGHTEN_CORNER_WINDOW,
+  STRAIGHTEN_CORNER_ANGLE,
+} from "@excalidraw/common";
 
 import type { LocalPoint } from "@excalidraw/math";
 
@@ -60,7 +65,6 @@ const smoothPoints = (
   }
 
   const result: LocalPoint[] = new Array(n);
-  // Preserve endpoints exactly
   result[0] = points[0];
   result[n - 1] = points[n - 1];
 
@@ -71,7 +75,6 @@ const smoothPoints = (
     let sumY = 0;
     let totalWeight = 0;
     for (let j = lo; j <= hi; j++) {
-      // Gaussian-like weight: closer points have more influence
       const dist = Math.abs(j - i);
       const w = 1 / (1 + dist);
       sumX += points[j][0] * w;
@@ -79,6 +82,191 @@ const smoothPoints = (
       totalWeight += w;
     }
     result[i] = pointFrom<LocalPoint>(sumX / totalWeight, sumY / totalWeight);
+  }
+
+  return result;
+};
+
+/**
+ * Contract points to close a nearly-closed shape.
+ * Ease-out falloff: start stays, end moves to start, middle shifts proportionally.
+ * Preserves point count.
+ */
+const contractToClose = (points: readonly LocalPoint[]): LocalPoint[] => {
+  const n = points.length;
+  if (n < 2) {
+    return [...points];
+  }
+  const last = n - 1;
+  const gapX = points[last][0] - points[0][0];
+  const gapY = points[last][1] - points[0][1];
+
+  return points.map((p, i) => {
+    const t = i / last;
+    const pull = t * t; // ease-out
+    return pointFrom<LocalPoint>(p[0] - pull * gapX, p[1] - pull * gapY);
+  });
+};
+
+/**
+ * Detect corner points by measuring direction change over a window.
+ * Returns sorted array of indices where corners are detected.
+ */
+const detectCorners = (
+  points: readonly LocalPoint[],
+  isClosed: boolean,
+): number[] => {
+  const n = points.length;
+  const W = STRAIGHTEN_CORNER_WINDOW;
+  const angleThreshold = (STRAIGHTEN_CORNER_ANGLE * Math.PI) / 180;
+  const angles: { idx: number; angle: number }[] = [];
+
+  for (let i = 1; i < n - 1; i++) {
+    let beforeIdx: number;
+    let afterIdx: number;
+
+    if (isClosed) {
+      beforeIdx = i - W < 0 ? (((i - W) % n) + n) % n : i - W;
+      afterIdx = i + W >= n ? (i + W) % n : i + W;
+    } else {
+      beforeIdx = Math.max(0, i - W);
+      afterIdx = Math.min(n - 1, i + W);
+    }
+
+    const bx = points[i][0] - points[beforeIdx][0];
+    const by = points[i][1] - points[beforeIdx][1];
+    const ax = points[afterIdx][0] - points[i][0];
+    const ay = points[afterIdx][1] - points[i][1];
+
+    const lenB = Math.sqrt(bx * bx + by * by);
+    const lenA = Math.sqrt(ax * ax + ay * ay);
+
+    if (lenB < 1 || lenA < 1) {
+      continue;
+    }
+
+    const dot = (bx * ax + by * ay) / (lenB * lenA);
+    const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+
+    if (angle > angleThreshold) {
+      angles.push({ idx: i, angle });
+    }
+  }
+
+  // Non-maximum suppression: keep only the strongest corner in each window
+  const corners: number[] = [];
+  for (const candidate of angles) {
+    const dominated = angles.some(
+      (other) =>
+        other !== candidate &&
+        Math.abs(other.idx - candidate.idx) <= W &&
+        other.angle > candidate.angle,
+    );
+    if (!dominated) {
+      corners.push(candidate.idx);
+    }
+  }
+
+  return corners.sort((a, b) => a - b);
+};
+
+/**
+ * Smooth points with cyclic wrapping (for closed shapes).
+ * Points near start/end average across the seam.
+ * Preserves point count. Does NOT preserve endpoints separately.
+ */
+const smoothPointsCyclic = (
+  points: readonly LocalPoint[],
+  radius: number = 3,
+): LocalPoint[] => {
+  const n = points.length;
+  if (n <= 2) {
+    return [...points];
+  }
+
+  const result: LocalPoint[] = new Array(n);
+
+  for (let i = 0; i < n; i++) {
+    let sumX = 0;
+    let sumY = 0;
+    let totalWeight = 0;
+    for (let offset = -radius; offset <= radius; offset++) {
+      const j = (((i + offset) % n) + n) % n;
+      const w = 1 / (1 + Math.abs(offset));
+      sumX += points[j][0] * w;
+      sumY += points[j][1] * w;
+      totalWeight += w;
+    }
+    result[i] = pointFrom<LocalPoint>(sumX / totalWeight, sumY / totalWeight);
+  }
+
+  // Re-close: ensure last point equals first
+  result[n - 1] = result[0];
+  return result;
+};
+
+/**
+ * Smooth points segment-by-segment, preserving corner points.
+ * For closed shapes with no corners near the seam, uses cyclic smoothing.
+ */
+const smoothBySegments = (
+  points: readonly LocalPoint[],
+  corners: number[],
+  isClosed: boolean,
+  radius: number = 3,
+): LocalPoint[] => {
+  if (corners.length === 0) {
+    return isClosed
+      ? smoothPointsCyclic(points, radius)
+      : smoothPoints(points, radius);
+  }
+
+  const result: LocalPoint[] = [...points];
+  const boundaries = [0, ...corners, points.length - 1];
+
+  for (let s = 0; s < boundaries.length - 1; s++) {
+    const segStart = boundaries[s];
+    const segEnd = boundaries[s + 1];
+    const segLen = segEnd - segStart + 1;
+
+    if (segLen <= 2) {
+      continue;
+    }
+
+    const segment = points.slice(segStart, segEnd + 1);
+    const smoothed = smoothPoints(segment, radius);
+
+    for (let i = 1; i < smoothed.length - 1; i++) {
+      result[segStart + i] = smoothed[i];
+    }
+  }
+
+  // For closed shapes: smooth across seam if no corner near 0 or n-1
+  if (
+    isClosed &&
+    corners[0] > radius &&
+    corners[corners.length - 1] < points.length - 1 - radius
+  ) {
+    const seamRadius = radius;
+    const n = points.length;
+    for (let offset = -seamRadius; offset <= seamRadius; offset++) {
+      const i = ((offset % n) + n) % n;
+      if (corners.includes(i)) {
+        continue;
+      }
+      let sumX = 0;
+      let sumY = 0;
+      let totalWeight = 0;
+      for (let j = -radius; j <= radius; j++) {
+        const idx = (((i + j) % n) + n) % n;
+        const w = 1 / (1 + Math.abs(j));
+        sumX += result[idx][0] * w;
+        sumY += result[idx][1] * w;
+        totalWeight += w;
+      }
+      result[i] = pointFrom<LocalPoint>(sumX / totalWeight, sumY / totalWeight);
+    }
+    result[n - 1] = result[0];
   }
 
   return result;
@@ -94,10 +282,10 @@ export type StraightenResult = {
 /**
  * Compute straightening targets for a freedraw stroke.
  *
- * Low deviation from start→end: straighten to a perfect line.
- * High deviation: smooth the curve (moving average) preserving shape and length.
- *
- * Returns null if the stroke should not be straightened.
+ * Flow:
+ * 1. If gap < threshold → contract to close (ease-out pull)
+ * 2. If open and low deviation → straighten to line
+ * 3. Otherwise → detect corners, smooth segments between them
  */
 export const computeStraightenResult = (
   points: readonly LocalPoint[],
@@ -108,40 +296,55 @@ export const computeStraightenResult = (
 
   const start = points[0];
   const end = points[points.length - 1];
-  const lineLen = pointDistance(start, end);
+  const gapDist = pointDistance(start, end);
+  const totalLen = pathLength(points);
 
-  if (lineLen < 1) {
-    return null; // closed scribble
+  // Step 1: Closure detection — contract if gap is small
+  let isClosed = false;
+  let workingPoints: LocalPoint[];
+
+  if (
+    gapDist < STRAIGHTEN_CLOSE_THRESHOLD &&
+    totalLen > STRAIGHTEN_CLOSE_THRESHOLD * 3
+  ) {
+    workingPoints = contractToClose(points);
+    isClosed = true;
+  } else {
+    workingPoints = [...points] as LocalPoint[];
   }
 
-  const deviation = maxDeviationFromLine(points);
-  const ratio = deviation / lineLen;
+  // Step 2: Straight line check (skip for closed shapes)
+  if (!isClosed) {
+    const lineLen = pointDistance(
+      workingPoints[0],
+      workingPoints[workingPoints.length - 1],
+    );
+    if (lineLen < 1) {
+      return null; // degenerate
+    }
+    const deviation = maxDeviationFromLine(workingPoints);
+    if (deviation / lineLen < STRAIGHTEN_DEVIATION_THRESHOLD) {
+      const s = workingPoints[0];
+      const e = workingPoints[workingPoints.length - 1];
+      const dx = e[0] - s[0];
+      const dy = e[1] - s[1];
+      const lenSq = dx * dx + dy * dy;
 
-  if (ratio < STRAIGHTEN_DEVIATION_THRESHOLD) {
-    // Straight line: project each point onto start→end
-    const dx = end[0] - start[0];
-    const dy = end[1] - start[1];
-    const lenSq = dx * dx + dy * dy;
+      const animationTargets = workingPoints.map((p) => {
+        const t = Math.max(
+          0,
+          Math.min(1, ((p[0] - s[0]) * dx + (p[1] - s[1]) * dy) / lenSq),
+        );
+        return pointFrom<LocalPoint>(s[0] + dx * t, s[1] + dy * t);
+      });
 
-    const animationTargets = points.map((p) => {
-      const t = Math.max(
-        0,
-        Math.min(1, ((p[0] - start[0]) * dx + (p[1] - start[1]) * dy) / lenSq),
-      );
-      return pointFrom<LocalPoint>(start[0] + dx * t, start[1] + dy * t);
-    });
-
-    return {
-      animationTargets,
-      finalPoints: animationTargets,
-    };
+      return { animationTargets, finalPoints: animationTargets };
+    }
   }
 
-  // High deviation: smooth curve (preserves shape + length)
-  const smoothed = smoothPoints(points);
+  // Step 3: Smart smoothing with corner detection
+  const corners = detectCorners(workingPoints, isClosed);
+  const smoothed = smoothBySegments(workingPoints, corners, isClosed);
 
-  return {
-    animationTargets: smoothed,
-    finalPoints: smoothed,
-  };
+  return { animationTargets: smoothed, finalPoints: smoothed };
 };
