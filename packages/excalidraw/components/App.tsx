@@ -648,6 +648,10 @@ let transformInitialAngle = 0;
 let transformInitialDist = 0;
 let transformInitialPoints: readonly LocalPoint[] | null = null;
 let transformEntryPos: { x: number; y: number } | null = null;
+// eslint-disable-next-line prefer-const -- reassigned in animateStraighten
+let transformInitialElementX = 0;
+// eslint-disable-next-line prefer-const -- reassigned in animateStraighten
+let transformInitialElementY = 0;
 
 let isHoldingSpace: boolean = false;
 let isPanning: boolean = false;
@@ -9217,6 +9221,8 @@ class App extends React.Component<AppProps, AppState> {
           y: element.y + anchorLocalY,
         };
         transformInitialPoints = [...finalPoints];
+        transformInitialElementX = element.x;
+        transformInitialElementY = element.y;
 
         const lastPt = pts[pts.length - 1];
         const cursorX = element.x + lastPt[0];
@@ -10970,9 +10976,9 @@ class App extends React.Component<AppProps, AppState> {
             const cos = Math.cos(deltaAngle);
             const sin = Math.sin(deltaAngle);
 
-            // Anchor in local coords
-            const anchorLocalX = transformAnchor.x - newElement.x;
-            const anchorLocalY = transformAnchor.y - newElement.y;
+            // Anchor in local coords using INITIAL element position (stable across frames)
+            const anchorLocalX = transformAnchor.x - transformInitialElementX;
+            const anchorLocalY = transformAnchor.y - transformInitialElementY;
 
             const newPoints = transformInitialPoints.map((p) => {
               const dx = p[0] - anchorLocalX;
@@ -10983,7 +10989,26 @@ class App extends React.Component<AppProps, AppState> {
               );
             });
 
-            this.scene.mutateElement(newElement, { points: newPoints });
+            // Normalize points so min is at (0,0) and adjust element position
+            let minX = Infinity;
+            let minY = Infinity;
+            for (const p of newPoints) {
+              if (p[0] < minX) {
+                minX = p[0];
+              }
+              if (p[1] < minY) {
+                minY = p[1];
+              }
+            }
+            const normalizedPoints = newPoints.map((p) =>
+              pointFrom<LocalPoint>(p[0] - minX, p[1] - minY),
+            );
+
+            this.scene.mutateElement(newElement, {
+              x: transformInitialElementX + minX,
+              y: transformInitialElementY + minY,
+              points: normalizedPoints,
+            });
             this.setState({ newElement });
             return;
           }

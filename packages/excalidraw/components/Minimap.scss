@@ -21,11 +21,11 @@
     }
 
     &--active {
-      background-color: var(--color-primary);
-      color: var(--color-icon-white);
+      background-color: var(--color-primary-light);
+      color: var(--color-primary);
 
       &:hover {
-        background-color: var(--color-primary-darker);
+        background-color: var(--color-primary-light-darker);
       }
     }
   }

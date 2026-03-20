@@ -233,38 +233,52 @@ const smoothBySegments = (
       continue;
     }
 
-    const segment = points.slice(segStart, segEnd + 1);
-    const smoothed = smoothPoints(segment, radius);
+    // Straighten edges: project all points onto the line from segment start to end
+    const sp = points[segStart];
+    const ep = points[segEnd];
+    const dx = ep[0] - sp[0];
+    const dy = ep[1] - sp[1];
+    const lenSq = dx * dx + dy * dy;
 
-    for (let i = 1; i < smoothed.length - 1; i++) {
-      result[segStart + i] = smoothed[i];
+    for (let i = 1; i < segLen - 1; i++) {
+      const p = points[segStart + i];
+      const t =
+        lenSq > 0
+          ? Math.max(
+              0,
+              Math.min(1, ((p[0] - sp[0]) * dx + (p[1] - sp[1]) * dy) / lenSq),
+            )
+          : 0;
+      result[segStart + i] = pointFrom<LocalPoint>(
+        sp[0] + dx * t,
+        sp[1] + dy * t,
+      );
     }
   }
 
-  // For closed shapes: smooth across seam if no corner near 0 or n-1
-  if (
-    isClosed &&
-    corners[0] > radius &&
-    corners[corners.length - 1] < points.length - 1 - radius
-  ) {
-    const seamRadius = radius;
+  // For closed shapes: straighten the seam segment (last corner → first corner via 0)
+  if (isClosed && corners.length >= 2) {
     const n = points.length;
-    for (let offset = -seamRadius; offset <= seamRadius; offset++) {
-      const i = ((offset % n) + n) % n;
-      if (corners.includes(i)) {
-        continue;
+    const lastCorner = corners[corners.length - 1];
+    const firstCorner = corners[0];
+    // Straighten: lastCorner → n-1 → 0 → firstCorner (wrapping segment)
+    const seamStart = result[lastCorner];
+    const seamEnd = result[firstCorner];
+    const sdx = seamEnd[0] - seamStart[0];
+    const sdy = seamEnd[1] - seamStart[1];
+    const sLenSq = sdx * sdx + sdy * sdy;
+    // Count points in the seam: from lastCorner+1 to firstCorner-1 (wrapping)
+    const seamCount = n - 1 - lastCorner + firstCorner;
+    for (let k = 1; k < seamCount; k++) {
+      const idx = (lastCorner + k) % n;
+      if (idx === firstCorner) {
+        break;
       }
-      let sumX = 0;
-      let sumY = 0;
-      let totalWeight = 0;
-      for (let j = -radius; j <= radius; j++) {
-        const idx = (((i + j) % n) + n) % n;
-        const w = 1 / (1 + Math.abs(j));
-        sumX += result[idx][0] * w;
-        sumY += result[idx][1] * w;
-        totalWeight += w;
-      }
-      result[i] = pointFrom<LocalPoint>(sumX / totalWeight, sumY / totalWeight);
+      const t = sLenSq > 0 ? Math.max(0, Math.min(1, k / seamCount)) : 0;
+      result[idx] = pointFrom<LocalPoint>(
+        seamStart[0] + sdx * t,
+        seamStart[1] + sdy * t,
+      );
     }
     result[n - 1] = result[0];
   }
