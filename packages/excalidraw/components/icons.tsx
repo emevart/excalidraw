@@ -2743,26 +2743,13 @@ export const settingsIcon = createIcon(
 
 export const MinimapIcon = createIcon(
   <>
-    <rect
-      x="3"
-      y="3"
-      width="14"
-      height="14"
-      rx="2"
+    <path
+      d="M4 4.5 L8 3 L12 4.5 L16 3 L16 16.5 L12 18 L8 16.5 L4 18 Z"
       strokeWidth="1.25"
       fill="none"
     />
-    <rect
-      x="5"
-      y="8"
-      width="5"
-      height="4"
-      rx="0.5"
-      strokeWidth="1"
-      fill="none"
-    />
-    <circle cx="14" cy="6" r="1.5" strokeWidth="1" fill="none" />
-    <path d="M5 15l3-3 2 1 3-4 4 3" strokeWidth="1" fill="none" />
+    <line x1="8" y1="3" x2="8" y2="16.5" strokeWidth="1" />
+    <line x1="12" y1="4.5" x2="12" y2="18" strokeWidth="1" />
   </>,
   modifiedTablerIconProps,
 );
