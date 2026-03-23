@@ -3,7 +3,6 @@ import { DEFAULT_LASER_COLOR, easeOut } from "@excalidraw/common";
 import type { LaserPointerOptions } from "@excalidraw/laser-pointer";
 
 import { AnimatedTrail } from "./animated-trail";
-import { getClientColor } from "./clients";
 
 import type { Trail } from "./animated-trail";
 import type { AnimationFrameHandler } from "./animation-frame-handler";
@@ -88,9 +87,7 @@ export class LaserTrails implements Trail {
       if (!this.collabTrails.has(key)) {
         trail = new AnimatedTrail(this.animationFrameHandler, this.app, {
           ...this.getTrailOptions(),
-          fill: () =>
-            collaborator.pointer?.laserColor ||
-            getClientColor(key, collaborator),
+          fill: () => DEFAULT_LASER_COLOR,
         });
         trail.start(this.container);
 
