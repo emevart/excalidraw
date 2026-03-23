@@ -2742,7 +2742,7 @@ export const settingsIcon = createIcon(
 );
 
 export const MinimapIcon = createIcon(
-  <>
+  <g stroke="currentColor">
     <path
       d="M4 4.5 L8 3 L12 4.5 L16 3 L16 16.5 L12 18 L8 16.5 L4 18 Z"
       strokeWidth="1.25"
@@ -2750,6 +2750,6 @@ export const MinimapIcon = createIcon(
     />
     <line x1="8" y1="3" x2="8" y2="16.5" strokeWidth="1" />
     <line x1="12" y1="4.5" x2="12" y2="18" strokeWidth="1" />
-  </>,
+  </g>,
   modifiedTablerIconProps,
 );
