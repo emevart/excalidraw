@@ -1258,13 +1258,13 @@ class App extends React.Component<AppProps, AppState> {
     const currentBinding = startDragged
       ? "startBinding"
       : endDragged
-        ? "endBinding"
-        : null;
+      ? "endBinding"
+      : null;
     const otherBinding = startDragged
       ? "endBinding"
       : endDragged
-        ? "startBinding"
-        : null;
+      ? "startBinding"
+      : null;
     const isAlreadyInsideBindingToSameElement =
       (otherBinding &&
         arrow[otherBinding]?.mode === "inside" &&
@@ -1906,7 +1906,7 @@ class App extends React.Component<AppProps, AppState> {
                           : undefined
                       }
                       src={
-                        src?.type !== "document" ? (src?.link ?? "") : undefined
+                        src?.type !== "document" ? src?.link ?? "" : undefined
                       }
                       // https://stackoverflow.com/q/18470015
                       scrolling="no"
@@ -4051,14 +4051,14 @@ class App extends React.Component<AppProps, AppState> {
       typeof opts.position === "object"
         ? opts.position.clientX
         : opts.position === "cursor"
-          ? this.lastViewportPosition.x
-          : this.state.width / 2 + this.state.offsetLeft;
+        ? this.lastViewportPosition.x
+        : this.state.width / 2 + this.state.offsetLeft;
     const clientY =
       typeof opts.position === "object"
         ? opts.position.clientY
         : opts.position === "cursor"
-          ? this.lastViewportPosition.y
-          : this.state.height / 2 + this.state.offsetTop;
+        ? this.lastViewportPosition.y
+        : this.state.height / 2 + this.state.offsetTop;
 
     const { x, y } = viewportCoordsToSceneCoords(
       { clientX, clientY },
@@ -5221,8 +5221,8 @@ class App extends React.Component<AppProps, AppState> {
                 prevState.currentItemArrowType === ARROW_TYPE.sharp
                   ? ARROW_TYPE.round
                   : prevState.currentItemArrowType === ARROW_TYPE.round
-                    ? ARROW_TYPE.elbow
-                    : ARROW_TYPE.sharp,
+                  ? ARROW_TYPE.elbow
+                  : ARROW_TYPE.sharp,
             }));
           }
 
@@ -6437,18 +6437,18 @@ class App extends React.Component<AppProps, AppState> {
           y: parentCenterPosition.elementCenterY,
         }
       : !existingTextElement
-        ? {
-            x: textCreationGridPoint?.x ?? sceneX,
-            y:
-              textCreationGridPoint === null
-                ? // Free text starts from a point cursor, so center the first line box on it.
-                  sceneY - getLineHeightInPx(fontSize, lineHeight) / 2
-                : textCreationGridPoint.y,
-          }
-        : {
-            x: sceneX,
-            y: sceneY,
-          };
+      ? {
+          x: textCreationGridPoint?.x ?? sceneX,
+          y:
+            textCreationGridPoint === null
+              ? // Free text starts from a point cursor, so center the first line box on it.
+                sceneY - getLineHeightInPx(fontSize, lineHeight) / 2
+              : textCreationGridPoint.y,
+        }
+      : {
+          x: sceneX,
+          y: sceneY,
+        };
 
     const element =
       existingTextElement ||
@@ -8456,13 +8456,12 @@ class App extends React.Component<AppProps, AppState> {
       ),
       // we need to duplicate because we'll be updating this state
       lastCoords: { ...origin },
-      originalElements: this.scene.getNonDeletedElements().reduce(
-        (acc, element) => {
+      originalElements: this.scene
+        .getNonDeletedElements()
+        .reduce((acc, element) => {
           acc.set(element.id, deepCopyElement(element));
           return acc;
-        },
-        new Map() as PointerDownState["originalElements"],
-      ),
+        }, new Map() as PointerDownState["originalElements"]),
       resize: {
         handleType: false,
         isResizing: false,
@@ -13659,38 +13658,6 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       const { deltaX, deltaY } = event;
-      // note that event.ctrlKey is necessary to handle pinch zooming
-      if (event.metaKey || event.ctrlKey) {
-        const sign = Math.sign(deltaY);
-        const MAX_STEP = ZOOM_STEP * 100;
-        const absDelta = Math.abs(deltaY);
-        let delta = deltaY;
-        if (absDelta > MAX_STEP) {
-          delta = MAX_STEP * sign;
-        }
-
-        let newZoom = this.state.zoom.value - delta / 100;
-        // increase zoom steps the more zoomed-in we are (applies to >100% only)
-        newZoom +=
-          Math.log10(Math.max(1, this.state.zoom.value)) *
-          -sign *
-          // reduced amplification for small deltas (small movements on a trackpad)
-          Math.min(1, absDelta / 20);
-
-        this.translateCanvas((state) => ({
-          ...getStateForZoom(
-            {
-              viewportX: this.lastViewportPosition.x,
-              viewportY: this.lastViewportPosition.y,
-              nextZoom: getNormalizedZoom(newZoom),
-            },
-            state,
-          ),
-          shouldCacheIgnoreZoom: true,
-        }));
-        this.resetShouldCacheIgnoreZoomDebounced();
-        return;
-      }
 
       // scroll horizontally when shift pressed
       if (event.shiftKey) {
@@ -13701,10 +13668,36 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
 
-      this.translateCanvas(({ zoom, scrollX, scrollY }) => ({
-        scrollX: scrollX - deltaX / zoom.value,
-        scrollY: scrollY - deltaY / zoom.value,
+      // Zoom on plain wheel and Ctrl/Cmd+wheel (ctrlKey is also true
+      // for trackpad pinch gestures, so both paths must zoom).
+      const sign = Math.sign(deltaY);
+      const MAX_STEP = ZOOM_STEP * 100;
+      const absDelta = Math.abs(deltaY);
+      let delta = deltaY;
+      if (absDelta > MAX_STEP) {
+        delta = MAX_STEP * sign;
+      }
+
+      let newZoom = this.state.zoom.value - delta / 100;
+      // increase zoom steps the more zoomed-in we are (applies to >100% only)
+      newZoom +=
+        Math.log10(Math.max(1, this.state.zoom.value)) *
+        -sign *
+        // reduced amplification for small deltas (small movements on a trackpad)
+        Math.min(1, absDelta / 20);
+
+      this.translateCanvas((state) => ({
+        ...getStateForZoom(
+          {
+            viewportX: this.lastViewportPosition.x,
+            viewportY: this.lastViewportPosition.y,
+            nextZoom: getNormalizedZoom(newZoom),
+          },
+          state,
+        ),
+        shouldCacheIgnoreZoom: true,
       }));
+      this.resetShouldCacheIgnoreZoomDebounced();
     },
   );
 
