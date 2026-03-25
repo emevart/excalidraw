@@ -3,7 +3,7 @@
 ## Versions published
 
 | Version | Changes |
-|---------|---------|
+| --- | --- |
 | v0.26.58 | `history.undo()`/`redo()` exposed in ExcalidrawImperativeAPI |
 | v0.26.59 | Hold-to-straighten, drag & drop image URL, minimap |
 | v0.26.60 | Fix: straighten state reset, minimap layout (left of zoom), accurate minimap rendering |
@@ -15,11 +15,13 @@
 ## Features delivered
 
 ### 1. Undo/redo mobile fix
+
 - **Problem:** Consumer app dispatched synthetic `KeyboardEvent` via `dispatchEvent()` which React's `onKeyDown` doesn't pick up, especially on mobile (focus loss)
 - **Solution:** Added `history.undo()`/`history.redo()` to `ExcalidrawImperativeAPI`, consumer calls directly
 - **Files:** `App.tsx`, `types.ts` (excalidraw); `excalidraw-adapter.ts` (billion-dollars)
 
 ### 2. Hold-to-straighten (Procreate-style)
+
 - **Trigger:** < 3px movement for 500ms while pointer down
 - **Low deviation:** projects all points onto start→end line (keeps same count)
 - **High deviation:** moving average smoothing (radius=3, preserves shape)
@@ -28,12 +30,14 @@
 - **Files:** `straighten.ts` (new), `App.tsx`, `constants.ts`
 
 ### 3. Drag & drop image from card
+
 - **Source:** `draggable="true"` + `onDragStart` on parent `<div>` in ProblemImages.tsx, `pointer-events-none` on overlay
 - **Receiver:** `text/uri-list` handler in `handleAppOnDrop` → `ImageURLToFile` → `insertImages()`
 - **Scope:** Inline mode only (desktop, card + board on same page)
 - **Files:** `App.tsx` (excalidraw); `ProblemImages.tsx` (billion-dollars)
 
 ### 4. Minimap
+
 - **Toggle:** Button left of zoom controls in Footer
 - **Rendering:** Canvas 2D, actual element shapes (freedraw paths, lines, ellipses, diamonds, text blocks)
 - **Interaction:** Click to center viewport, drag to pan
@@ -43,7 +47,7 @@
 ## Bugs found and fixed during implementation
 
 | Bug | Root cause | Fix |
-|-----|-----------|-----|
+| --- | --- | --- |
 | Straighten blocks subsequent strokes | `isStraightening` not reset on animation completion | Added reset + `wasStraightened` flag |
 | End point shifts after straightening | pointerUp appends extra point at lift position | Skip final point when `wasStraightened` |
 | Line compresses (arc length) | Arc length of wobbly path > straight line | Dot-product projection onto start→end |

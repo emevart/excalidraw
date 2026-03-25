@@ -3,7 +3,7 @@
 ## Versions published
 
 | Version | Changes |
-|---------|---------|
+| --- | --- |
 | v0.26.65 | Upstream merge: text auto-resize handle, text centering, grid snap on text create |
 | v0.26.66 | Smart smoothing, auto-closure, transform after straighten, snap-to-first, minimap icon |
 | v0.26.67 | Fix: minimap active icon lighter, polygon edge straightening, transform clipping |
@@ -16,16 +16,19 @@
 ## Features delivered
 
 ### 1. Minimap icon
+
 - **Before:** Landscape/photo icon (sun + mountains)
 - **After:** Folded map icon (3 zigzag panels), lighter active state (primary-light)
 - **Files:** `icons.tsx:2744-2768`, `Minimap.scss:23-30`
 
 ### 2. Snap-to-first magnetism
+
 - **Problem:** Closing a polygon from line tool without grid snap was nearly impossible (8px target)
 - **Solution:** 20px magnetic threshold (zoom-adjusted), trailing point snaps to first point + visual indicator (indigo circle)
 - **Files:** `linearElementEditor.ts`, `interactiveScene.ts`, `constants.ts`
 
 ### 3. Smart smoothing with corner detection
+
 - **Algorithm:** For each point, compute direction change over window of 6 points. If angle > 35° → corner.
 - **Per-segment decision:** Each segment between corners checked independently — low deviation → straighten to line, high deviation → smooth (moving average radius=3)
 - **Density filter:** If >30% of points are "corners" → treat as smooth curve (reset corners)
@@ -33,12 +36,14 @@
 - **Files:** `straighten.ts` (full rewrite, 147→430 lines), `constants.ts`
 
 ### 4. Auto-closure for freedraw
+
 - **Trigger:** `distance(start, end) < 30px` AND `pathLength > 90px`
 - **Method:** Ease-out contraction `pull(t) = t²` — start stays, end moves to start
 - **Known limitation:** Large polygons (gap > 30px) don't close. Threshold increase and overlap hacks produced worse visual results — left as TODO.
 - **Files:** `straighten.ts` (`contractToClose`)
 
 ### 5. Transform after straightening (Procreate-style)
+
 - **Flow:** Hold to straighten → animation completes → enter transform mode → move finger to rotate/scale → release to finalize
 - **Anchor:** First point for open shapes, centroid for closed
 - **Dead zone:** 5px to prevent touch jitter

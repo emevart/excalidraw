@@ -11630,9 +11630,14 @@ class App extends React.Component<AppProps, AppState> {
         isSolidPresetType(activeTool.type) &&
         !isLinearElement(newElement)
       ) {
-        // Soft-delete proxy rectangle (not physical removal) so that the
-        // deletion propagates to collaborators via version bump + isDeleted.
-        this.scene.mutateElement(newElement, { isDeleted: true });
+        // Physically remove proxy rectangle from scene (same as poly presets).
+        // Collab propagation is handled by the Yjs orphan-cleanup in
+        // onElementsChange which soft-deletes Y.Map entries for removed elements.
+        this.scene.replaceAllElements(
+          this.scene
+            .getElementsIncludingDeleted()
+            .filter((el) => el.id !== newElement.id),
+        );
 
         if (
           !pointerDownState.drag.hasOccurred ||
