@@ -228,8 +228,8 @@ export const generateRoughOptions = (
       element.strokeStyle === "dashed"
         ? getDashArrayDashed(element.strokeWidth)
         : element.strokeStyle === "dotted"
-        ? getDashArrayDotted(element.strokeWidth)
-        : undefined,
+          ? getDashArrayDotted(element.strokeWidth)
+          : undefined,
     // for non-solid strokes, disable multiStroke because it tends to make
     // dashes/dots overlay each other
     disableMultiStroke: element.strokeStyle !== "solid",
@@ -262,8 +262,8 @@ export const generateRoughOptions = (
       options.fill = isTransparent(element.backgroundColor)
         ? undefined
         : isDarkMode
-        ? applyDarkModeFilter(element.backgroundColor)
-        : element.backgroundColor;
+          ? applyDarkModeFilter(element.backgroundColor)
+          : element.backgroundColor;
       if (element.type === "ellipse") {
         options.curveFitting = 1;
       }
@@ -277,8 +277,8 @@ export const generateRoughOptions = (
           element.backgroundColor === "transparent"
             ? undefined
             : isDarkMode
-            ? applyDarkModeFilter(element.backgroundColor)
-            : element.backgroundColor;
+              ? applyDarkModeFilter(element.backgroundColor)
+              : element.backgroundColor;
       }
       return options;
     }
@@ -872,20 +872,20 @@ const _generateElementShape = (
             rightX - verticalRadius
           } ${rightY - horizontalRadius}
             C ${rightX} ${rightY}, ${rightX} ${rightY}, ${
-            rightX - verticalRadius
-          } ${rightY + horizontalRadius}
+              rightX - verticalRadius
+            } ${rightY + horizontalRadius}
             L ${bottomX + verticalRadius} ${bottomY - horizontalRadius}
             C ${bottomX} ${bottomY}, ${bottomX} ${bottomY}, ${
-            bottomX - verticalRadius
-          } ${bottomY - horizontalRadius}
+              bottomX - verticalRadius
+            } ${bottomY - horizontalRadius}
             L ${leftX + verticalRadius} ${leftY + horizontalRadius}
             C ${leftX} ${leftY}, ${leftX} ${leftY}, ${leftX + verticalRadius} ${
-            leftY - horizontalRadius
-          }
+              leftY - horizontalRadius
+            }
             L ${topX - verticalRadius} ${topY + horizontalRadius}
             C ${topX} ${topY}, ${topX} ${topY}, ${topX + verticalRadius} ${
-            topY + horizontalRadius
-          }`,
+              topY + horizontalRadius
+            }`,
           generateRoughOptions(element, true, isDarkMode),
         );
       } else {
@@ -1321,11 +1321,20 @@ export const getFreedrawOutlinePoints = (
     },
   });
 
+  // Soft-start: blend first few pressure values toward 0.5 (medium width)
+  // to avoid "dry pen" artifacts from irregular initial stylus pressure
+  // on iPad (Apple Pencil reports very low pressure on first contact).
+  const SOFT_START_POINTS = 5;
+
   for (let i = 0; i < element.points.length; i++) {
     const [x, y] = element.points[i];
-    const pressure = element.simulatePressure
+    let pressure = element.simulatePressure
       ? 0.5
-      : element.pressures[i] ?? 0.5;
+      : (element.pressures[i] ?? 0.5);
+    if (!element.simulatePressure && i < SOFT_START_POINTS) {
+      const blend = i / SOFT_START_POINTS; // 0→1 over first 5 points
+      pressure = 0.5 * (1 - blend) + pressure * blend;
+    }
     lp.addPoint([x, y, pressure] as [number, number, number]);
   }
   lp.close();
