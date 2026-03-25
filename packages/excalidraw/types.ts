@@ -434,6 +434,7 @@ export interface AppState {
     duration?: number;
   } | null;
   zenModeEnabled: boolean;
+  hintsEnabled: boolean;
   theme: Theme;
   /** grid cell px size */
   gridSize: number;

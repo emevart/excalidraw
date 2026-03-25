@@ -242,6 +242,10 @@ export const HintViewer = ({
   editorInterface,
   app,
 }: HintViewerProps) => {
+  if (appState.hintsEnabled === false) {
+    return null;
+  }
+
   const hints = getHints({
     appState,
     isMobile,

@@ -243,6 +243,7 @@
     "darkMode": "Dark mode",
     "lightMode": "Light mode",
     "systemMode": "System mode",
+    "hints": "Show hints",
     "zenMode": "Zen mode",
     "objectsSnapMode": "Snap to objects",
     "exitZenMode": "Exit zen mode",
